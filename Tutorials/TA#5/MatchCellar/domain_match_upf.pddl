@@ -1,0 +1,15 @@
+(define (domain matchcellar-domain)
+ (:requirements :strips :typing :negative-preconditions :durative-actions)
+ (:types fuse match)
+ (:predicates (handfree) (light) (match_used ?m - match) (fuse_mended ?f - fuse))
+ (:durative-action light_match
+  :parameters ( ?m - match)
+  :duration (= ?duration 15)
+  :condition (and (at start (not (match_used ?m))))
+  :effect (and (at start (match_used ?m)) (at start (light)) (at end (not (light)))))
+ (:durative-action fix_fuse
+  :parameters ( ?f - fuse)
+  :duration (= ?duration 10)
+  :condition (and (at start (handfree))(at start (light))(over all (light))(at end (light)))
+  :effect (and (at start (not (handfree))) (at end (fuse_mended ?f)) (at end (handfree))))
+)

@@ -1,0 +1,30 @@
+(define (domain satellite_temp-domain)
+ (:requirements :strips :typing :negative-preconditions :equality :durative-actions)
+ (:types satellite instrument mode direction)
+ (:predicates (on_board ?i - instrument ?s - satellite) (supports ?i - instrument ?m - mode) (pointing ?s - satellite ?d - direction) (power_avail ?s - satellite) (power_on ?i - instrument) (calibrated ?i - instrument) (have_image ?d - direction ?m - mode) (calibration_target ?i - instrument ?d - direction))
+ (:durative-action turn_to
+  :parameters ( ?s - satellite ?d_new - direction ?d_prev - direction)
+  :duration (= ?duration 5)
+  :condition (and (at start (pointing ?s ?d_prev))(at start (not (= ?d_new ?d_prev)))(over all (not (= ?d_new ?d_prev)))(at end (not (= ?d_new ?d_prev))))
+  :effect (and (at end (pointing ?s ?d_new)) (at start (not (pointing ?s ?d_prev)))))
+ (:durative-action switch_on
+  :parameters ( ?i - instrument ?s - satellite)
+  :duration (= ?duration 2)
+  :condition (and (at start (on_board ?i ?s))(over all (on_board ?i ?s))(at end (on_board ?i ?s))(at start (power_avail ?s)))
+  :effect (and (at end (power_on ?i)) (at start (not (power_avail ?s))) (at start (not (calibrated ?i)))))
+ (:durative-action switch_off
+  :parameters ( ?i - instrument ?s - satellite)
+  :duration (= ?duration 1)
+  :condition (and (at start (on_board ?i ?s))(over all (on_board ?i ?s))(at end (on_board ?i ?s))(at start (power_on ?i)))
+  :effect (and (at start (not (power_on ?i))) (at end (power_avail ?s))))
+ (:durative-action calibrate
+  :parameters ( ?s - satellite ?i - instrument ?d - direction)
+  :duration (= ?duration 5)
+  :condition (and (at start (on_board ?i ?s))(over all (on_board ?i ?s))(at end (on_board ?i ?s))(at start (calibration_target ?i ?d))(over all (calibration_target ?i ?d))(at end (calibration_target ?i ?d))(at start (power_on ?i))(over all (power_on ?i))(at end (power_on ?i))(at start (pointing ?s ?d))(at end (power_on ?i)))
+  :effect (and (at end (calibrated ?i))))
+ (:durative-action take_image
+  :parameters ( ?s - satellite ?d - direction ?i - instrument ?m - mode)
+  :duration (= ?duration 7)
+  :condition (and (at start (calibrated ?i))(over all (calibrated ?i))(at end (calibrated ?i))(at start (on_board ?i ?s))(over all (on_board ?i ?s))(at end (on_board ?i ?s))(at start (supports ?i ?m))(over all (supports ?i ?m))(at end (supports ?i ?m))(at start (power_on ?i))(over all (power_on ?i))(at end (power_on ?i))(at start (pointing ?s ?d))(over all (pointing ?s ?d))(at end (pointing ?s ?d))(at end (power_on ?i)))
+  :effect (and (at end (have_image ?d ?m))))
+)
